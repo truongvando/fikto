@@ -247,6 +247,8 @@ button.delete-link:hover {
     <script>
         function addLink() {
     const link = document.getElementById("link").value;
+    const groupSelect = document.getElementById("group-select");
+    const groupId = groupSelect.options[groupSelect.selectedIndex].value;
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "add_link.php", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -254,14 +256,15 @@ button.delete-link:hover {
         if (xhr.readyState === 4 && xhr.status === 200) {
             if (xhr.responseText === "success") {
                 window.location.href = window.location.href;
-                location.reload();
             } else {
                 alert("Có lỗi xảy ra, vui lòng thử lại.");
             }
         }
     };
-    xhr.send("link=" + encodeURIComponent(link));
+    xhr.send("link=" + encodeURIComponent(link) + "&groupId=" + encodeURIComponent(groupId));
 }
+
+
 
 function deleteLink(id) {
     if (confirm("Bạn có chắc chắn muốn xóa liên kết này không?")) {
@@ -364,8 +367,25 @@ function copyRandomLink() {
 
 
 window.onload = function() {
-    init();
+    // Gửi yêu cầu đến server để lấy danh sách các nhóm
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "fetch_groups.php", true);
+    xhr.onreadystatechange = function() {
+        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+            var groups = JSON.parse(this.responseText);
+            // Thêm một option vào dropdown menu cho mỗi nhóm
+            var groupSelect = document.getElementById("group-select");
+            for (var i = 0; i < groups.length; i++) {
+                var option = document.createElement("option");
+                option.value = groups[i].id;
+                option.text = groups[i].name;
+                groupSelect.add(option);
+            }
+        }
+    };
+    xhr.send();
 };
+
 
 </script>
     
@@ -418,18 +438,23 @@ window.onload = function() {
 
     <script>
         function addGroup() {
-            var groupName = document.getElementById("groupName").value;
-            var xhr = new XMLHttpRequest();
-            xhr.open("add_group.php", "", true); // You'll need to replace "" with the URL of your PHP script.
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                    alert("Đã thêm nhóm thành công!");
-                    // You could also add code here to update the page with the new group, without needing to refresh the page.
-                }
-            }
-            xhr.send("groupName=" + groupName);
+    var groupName = document.getElementById("groupName").value;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "add_group.php", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+            alert("Đã thêm nhóm thành công!");
+            // Add the new group to the dropdown menu
+            var groupSelect = document.getElementById("group-select");
+            var option = document.createElement("option");
+            option.text = groupName;
+            groupSelect.add(option);
         }
+    }
+    xhr.send("groupName=" + groupName);
+}
+
     </script>
 </body>
 </html>
